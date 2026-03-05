@@ -20,6 +20,7 @@
 #include <pspsdk.h>
 #include <pspuser.h>
 #include <pspctrl.h>
+#include <stdint.h>
 #include <systemctrl.h>
 #include <kubridge.h>
 #include <stdio.h>
@@ -343,8 +344,30 @@ int MainInit() {
     // TODO: EnableExternalTranslation
 
     // TODO: EnableSaveDataPatch
+    int iniEnableSaveDataPatch = inireader.ReadInteger("PATCHES", "EnableSaveDataPatch", 0);
+    sceKernelPrintf("save data patch is: %d\n", iniEnableSaveDataPatch);
+
+    if (iniEnableSaveDataPatch)
+    {
+        injector.MakeJAL(0x0880b4e4, (uintptr_t)sceUtilitySavedataInitStartPatched);
+        injector.MakeJAL(0x0880b6f0, (uintptr_t)sceUtilitySavedataInitStartPatched);
+        injector.MakeJAL(0x0880baf8, (uintptr_t)sceUtilitySavedataInitStartPatched);
+        injector.MakeJAL(0x0880bce0, (uintptr_t)sceUtilitySavedataInitStartPatched);
+        injector.MakeJAL(0x0880d97c, (uintptr_t)sceUtilitySavedataInitStartPatched);
+        injector.MakeJAL(0x0880e1d4, (uintptr_t)sceUtilitySavedataInitStartPatched);
+    }
 
     // TODO: EnableMessageDialogPatch
+    int iniEnableMessageDialogPatch = inireader.ReadInteger("PATCHES", "EnableMessageDialogPatch", 0);
+    sceKernelPrintf("message dialog patch is: %d\n", iniEnableMessageDialogPatch
+    );
+    if (iniEnableMessageDialogPatch)
+    {
+        uint32_t li_instr = li(v1, 0x0b); // li v1, 0x0b or addiu $v1, $zero, 0x000B
+        injector.WriteInstr(0x0880d024, li_instr);
+        uint32_t sw_instr = sw(v1, s1, 4); // sw v1, 4(s1)
+        injector.WriteInstr(0x0880d02c, sw_instr);
+    }
 
     // TODO: EnablePulseAutowin
 
@@ -353,8 +376,19 @@ int MainInit() {
     // TODO: ExternalFontFile
 
     // TODO: EnableBattleDebugMenu
+    int iniEnableBattleDebugMenu = inireader.ReadInteger("DEBUG", "EnableBattleDebugMenu", 0);
+    sceKernelPrintf("battle debug menu is: %d\n", iniEnableBattleDebugMenu);
+    if (iniEnableBattleDebugMenu)
+    {
+        injector.WriteMemory32(0x08b57e04, 0x01);
+    }
 
     // TODO: EnableDailyDebugMenu
+    int iniEnableDailyDebugMenu = inireader.ReadInteger("DEBUG", "EnableDailyDebugMenu", 0);
+    sceKernelPrintf("daily debug menu is: %d\n", iniEnableDailyDebugMenu);
+    if (iniEnableDailyDebugMenu)    {
+        injector.WriteMemory32(0x089c97cc, 0x088984c0);
+    }
 
     // not really necessary
     sceKernelDcacheWritebackAll();
