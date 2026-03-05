@@ -48,7 +48,7 @@
 
 // Uncomment for logging
 // We use a global definition like so to reduce final binary size (which is very important because PSP is memory constrained!)
-#define LOG
+// #define LOG
 
 // We ignore Intellisense here to reduce squiggles in VS
 #ifndef __INTELLISENSE__
@@ -299,13 +299,11 @@ int MainInit() {
     // Set up the inireader path
     inireader.SetIniPath(inipath);
 
-    // And then read & do something with the value...
-    int iniValue = inireader.ReadInteger("MAIN", "Value", 0);
-    logPrintf("ini value is: %d\n", iniValue);
-
     // Extend SHIFT-JIS charset to support more characters (e.g. Chinese characters)
     int iniExtendCharset = inireader.ReadInteger("PATCHES", "EnableExtendCharset", 0);
+#ifdef LOG
     logPrintf("extend charset is: %d\n", iniExtendCharset);
+#endif
 
     if (iniExtendCharset)
     {
@@ -320,7 +318,9 @@ int MainInit() {
 
     // Patch the SHIFT-JIS to UTF-16 translation function to support the extended charset
     int iniTranslateCode = inireader.ReadInteger("PATCHES", "EnableCharTranslationHook", 0);
+#ifdef LOG
     logPrintf("translate code is: %d", iniTranslateCode);
+#endif
 
     if (iniTranslateCode)
     {
@@ -329,7 +329,9 @@ int MainInit() {
     }
 
     int iniEnableCustomFontPatch = inireader.ReadInteger("PATCHES", "EnableCustomFontPatch", 0);
+#ifdef LOG
     logPrintf("custom font patch is: %d", iniEnableCustomFontPatch);
+#endif
 
     if(iniEnableCustomFontPatch)
     {
@@ -345,7 +347,9 @@ int MainInit() {
 
     // TODO: EnableSaveDataPatch
     int iniEnableSaveDataPatch = inireader.ReadInteger("PATCHES", "EnableSaveDataPatch", 0);
+#ifdef LOG
     logPrintf("save data patch is: %d", iniEnableSaveDataPatch);
+#endif
 
     if (iniEnableSaveDataPatch)
     {
@@ -359,7 +363,9 @@ int MainInit() {
 
     // TODO: EnableMessageDialogPatch
     int iniEnableMessageDialogPatch = inireader.ReadInteger("PATCHES", "EnableMessageDialogPatch", 0);
+#ifdef LOG
     logPrintf("message dialog patch is: %d", iniEnableMessageDialogPatch);
+#endif
     if (iniEnableMessageDialogPatch)
     {
         uint32_t li_instr = li(v1, 0x0b); // li v1, 0x0b or addiu $v1, $zero, 0x000B
@@ -370,7 +376,9 @@ int MainInit() {
 
     // TODO: EnablePulseAutowin
     int iniEnablePulseAutowin = inireader.ReadInteger("CHEATS", "EnablePulseAutowin", 0);
+#ifdef LOG
     logPrintf("pulse autowin is: %d", iniEnablePulseAutowin);
+#endif
     if (iniEnablePulseAutowin)
     {
         injector.WriteMemory32(0x0885b478, 0x00000000);
@@ -385,7 +393,9 @@ int MainInit() {
 
     // TODO: EnableBattleDebugMenu
     int iniEnableBattleDebugMenu = inireader.ReadInteger("DEBUG", "EnableBattleDebugMenu", 0);
+#ifdef LOG
     logPrintf("battle debug menu is: %d", iniEnableBattleDebugMenu);
+#endif
     if (iniEnableBattleDebugMenu)
     {
         injector.WriteMemory32(0x08b57e04, 0x01);
@@ -393,7 +403,9 @@ int MainInit() {
 
     // TODO: EnableDailyDebugMenu
     int iniEnableDailyDebugMenu = inireader.ReadInteger("DEBUG", "EnableDailyDebugMenu", 0);
+#ifdef LOG
     logPrintf("daily debug menu is: %d", iniEnableDailyDebugMenu);
+#endif
     if (iniEnableDailyDebugMenu)    {
         injector.WriteMemory32(0x089c97cc, 0x088984c0);
     }

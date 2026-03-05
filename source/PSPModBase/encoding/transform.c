@@ -35,23 +35,9 @@ extern unsigned char SJIS_bin[360]; // SJIS Table
 // index: See gb2312_to_custom_map
 extern unsigned char GB2312_CUSTOM_BIN[]; // UTF-16 Table for Custom Encoding
 
+#ifdef LOG
 extern int logPrintf(const char* text, ...);
-
-void transfrom_debug()
-{
-
-    u16 *DAT_08a3325c = (u16 *)(SJIS_bin);
-    u16 *UTF16_TABLE = (u16 *)(UTF16_bin);
-
-    // Debug info for SJIS Table
-    for (int i = 0; i < 10; ++i)
-    {
-        logPrintf("Code: %04x, Index: %04x", DAT_08a3325c[i << 1], DAT_08a3325c[(i << 1) + 1]);
-    }
-
-    logPrintf("Print DAT_08a3325c: %x", DAT_08a3325c);
-    logPrintf("Print UTF16_TABLE: %x", UTF16_TABLE);
-}
+#endif
 
 /**
  * Convert UTF-16 code point to UTF-8 and store it in a buffer
@@ -109,11 +95,13 @@ Use 0xA6-0xDD to store GB2312 Chinese Characters
 */
 uint16_t modified_to_utf16(u16 code)
 {
+#ifdef LOG
     logPrintf("Modified to UTF16: %x", code);
     if (code > 0xc332)
     {
         logPrintf("Out of Range: %x", code);
     }
+#endif
     return ((u16 *)GB2312_CUSTOM_BIN)[code - 0xA600];
 }
 
@@ -123,7 +111,9 @@ uint16_t sjis_to_utf16(u16 sjis)
 
     u16 *DAT_08a3325c = (u16 *)(SJIS_bin);
     u16 *UTF16_TABLE = (u16 *)(UTF16_bin);
+#ifdef LOG
     logPrintf("SHIFT-JIS: %x", sjis);
+#endif
     int low = 0;
     int high = 0x5a;
 
@@ -146,10 +136,12 @@ uint16_t sjis_to_utf16(u16 sjis)
     // Print UTF-16 and UTF-8 result for debugging
     char utf8_buf[4];
     utf16_to_utf8(utf16_code, utf8_buf, sizeof(utf8_buf));
-    
+
+#ifdef LOG
     logPrintf("UTF-16 Code: 0x%04X", utf16_code);
     logPrintf("UTF-8 Result: %s", utf8_buf);
-    
+#endif
+
     return utf16_code;
 }
 
@@ -173,7 +165,9 @@ int binary_search(uint16_t target, int low, int high)
 
         if (target >= mid_val && (mid == high || target < next_val))
         {
+#ifdef LOG
             logPrintf("Found: %x", mid);
+#endif
             return mid;
         }
         else if (mid_val < target)
@@ -185,8 +179,9 @@ int binary_search(uint16_t target, int low, int high)
             high = (mid - 1);
         }
     }
-
+#ifdef LOG
     logPrintf("Not Found: %x", target);
+#endif
 
     return -1; // 如果未找到目标值，则返回 -1
 }

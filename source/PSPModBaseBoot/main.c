@@ -18,7 +18,7 @@
 // Define the name of the game's main module here
 // This is the same one we define in PSPModBase
 // This is also the name of the module we use to wait for until it loads.
-#define MODULE_NAME_INTERNAL "TargetModule"
+#define MODULE_NAME_INTERNAL "USER_MAIN"
 
 // Define the name of your userspace module here
 // This is the name of the module that we'll boot up.
