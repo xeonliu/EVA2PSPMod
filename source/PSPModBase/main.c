@@ -29,10 +29,12 @@
 #include "../../includes/psp/injector.h"
 #include "../../includes/psp/inireader.h"
 
+#include "encoding/transform.h"
+
 // Define the name of the game's main module here
 // The easiest way this can be found is by using PPSSPP's debugger
 // Example: GTA Vice City Stories and Liberty City Stories both have the module name of "GTA3"
-#define MODULE_NAME_INTERNAL "TargetModule"
+#define MODULE_NAME_INTERNAL "USER_MAIN"
 
 // This is the name of this module that will be presented to the PSP OS.
 // We also use it here as the base name for the ini and log files.
@@ -44,7 +46,7 @@
 
 // Uncomment for logging
 // We use a global definition like so to reduce final binary size (which is very important because PSP is memory constrained!)
-//#define LOG
+#define LOG
 
 // We ignore Intellisense here to reduce squiggles in VS
 #ifndef __INTELLISENSE__
@@ -298,6 +300,31 @@ int MainInit() {
     // And then read & do something with the value...
     int iniValue = inireader.ReadInteger("MAIN", "Value", 0);
     sceKernelPrintf("ini value is: %d\n", iniValue);
+
+    // Extend SHIFT-JIS charset to support more characters (e.g. Chinese characters)
+    int iniExtendCharset = inireader.ReadInteger("PATCHES", "EnableExtendCharset", 0);
+    sceKernelPrintf("extend charset is: %d\n", iniExtendCharset);
+
+    if (iniExtendCharset)
+    {
+        // BIN_COND 修改：扩展边界到 0xa6
+        uint32_t bin_instr = sltiu(v0, a0, 0xa6);
+        injector.WriteInstr(0x08874260, bin_instr);
+
+        // EVS_COND 修改：扩展边界到 0xa6
+        uint32_t evs_instr = slti(v0, a0, 0xa6);
+        injector.WriteInstr(0x08819d68, evs_instr);
+    }
+
+    // Patch the SHIFT-JIS to UTF-16 translation function to support the extended charset
+    int iniTranslateCode = inireader.ReadInteger("PATCHES", "EnableCharTranslationHook", 0);
+    sceKernelPrintf("translate code is: %d\n", iniTranslateCode);
+
+    if (iniTranslateCode)
+    {
+        // 字符翻译钩子
+        injector.MakeJAL(0x088691b8, (uintptr_t)translate_code);
+    }
 
     // not really necessary
     sceKernelDcacheWritebackAll();

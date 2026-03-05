@@ -365,3 +365,4 @@ FodyWeavers.xsd
 # build result
 build/
 *.o
+.DS_Store
