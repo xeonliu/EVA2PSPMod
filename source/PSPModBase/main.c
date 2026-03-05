@@ -30,6 +30,7 @@
 #include "../../includes/psp/inireader.h"
 
 #include "encoding/transform.h"
+#include "system/system.h"
 
 // Define the name of the game's main module here
 // The easiest way this can be found is by using PPSSPP's debugger
@@ -325,6 +326,35 @@ int MainInit() {
         // 字符翻译钩子
         injector.MakeJAL(0x088691b8, (uintptr_t)translate_code);
     }
+
+    int iniEnableCustomFontPatch = inireader.ReadInteger("PATCHES", "EnableCustomFontPatch", 0);
+    sceKernelPrintf("custom font patch is: %d\n", iniEnableCustomFontPatch);
+
+    if(iniEnableCustomFontPatch)
+    {
+        // 字体钩子
+        injector.MakeJAL(0x08869040, (uintptr_t)sceFtttNewLib);
+        injector.MakeJAL(0x088692f8, (uintptr_t)sceFtttOpen);
+        injector.MakeJAL(0x08869310, (uintptr_t)sceFtttGetFontInfo);
+    }
+
+    // TODO: EnableStringPatches
+
+    // TODO: EnableExternalTranslation
+
+    // TODO: EnableSaveDataPatch
+
+    // TODO: EnableMessageDialogPatch
+
+    // TODO: EnablePulseAutowin
+
+    // TODO: ExternalTransFile
+
+    // TODO: ExternalFontFile
+
+    // TODO: EnableBattleDebugMenu
+
+    // TODO: EnableDailyDebugMenu
 
     // not really necessary
     sceKernelDcacheWritebackAll();
