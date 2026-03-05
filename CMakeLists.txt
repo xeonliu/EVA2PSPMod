@@ -11,6 +11,19 @@ set(COMMON_CFLAGS
 )
 
 # --------------------------------------------------------------------------
+# Encoding library (encoding/transform + tables)
+# --------------------------------------------------------------------------
+add_library(encoding STATIC
+    source/PSPModBase/encoding/transform.c
+    source/PSPModBase/encoding/gb2312.c
+    source/PSPModBase/encoding/sjis.c
+    source/PSPModBase/encoding/utf16.c
+)
+
+target_compile_options(encoding PRIVATE ${COMMON_CFLAGS})
+target_include_directories(encoding PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/source/PSPModBase)
+
+# --------------------------------------------------------------------------
 # PSPModBaseBoot – kernel-mode bootstrapper
 # --------------------------------------------------------------------------
 add_prx_module(PSPModBaseBoot
@@ -35,4 +48,9 @@ add_prx_module(PSPModBase
 )
 
 target_compile_options(PSPModBase PRIVATE ${COMMON_CFLAGS} -fpack-struct=16)
-target_link_libraries(PSPModBase PRIVATE pspsystemctrl_user pspkubridge m)
+target_link_libraries(PSPModBase PRIVATE
+    encoding
+    pspsystemctrl_user
+    pspkubridge
+    m
+)
