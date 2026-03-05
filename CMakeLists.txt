@@ -53,7 +53,17 @@ add_prx_module(PSPModBaseBoot
 )
 
 target_compile_options(PSPModBaseBoot PRIVATE ${COMMON_CFLAGS})
-target_link_libraries(PSPModBaseBoot PRIVATE pspsystemctrl_kernel m)
+target_link_libraries(PSPModBaseBoot PRIVATE 
+    pspsystemctrl_kernel 
+    m
+    pspdebug 
+    pspdisplay_driver 
+    pspctrl_driver 
+    pspmodinfo 
+    pspsdk 
+    pspkernel
+)
+target_link_options(PSPModBaseBoot PRIVATE -nostdlib)
 
 # --------------------------------------------------------------------------
 # PSPModBase – user-mode plugin
