@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.10)
-project(PSPModBase C)
+project(PSPModBase C ASM)
 
 include($ENV{PSPDEV}/psp/share/AddPrxModule.cmake)
 
@@ -22,6 +22,27 @@ add_library(encoding STATIC
 
 target_compile_options(encoding PRIVATE ${COMMON_CFLAGS})
 target_include_directories(encoding PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/source/PSPModBase)
+
+# --------------------------------------------------------------------------
+# Patched System libraries (kernel and user)
+# --------------------------------------------------------------------------
+add_library(system STATIC
+    source/PSPModBase/system/psputil.c
+    source/PSPModBase/system/scefttt.c
+    source/PSPModBase/system/sceLibFont.S
+)
+
+set_property(SOURCE source/PSPModBase/system/sceLibFont.S APPEND PROPERTY COMPILE_DEFINITIONS
+    F_sceLibFont_0000 # sceLibFont
+    F_sceLibFont_0003 # sceFontGetFontInfo
+    F_sceLibFont_0014 # sceFontOpenUserFile
+    F_sceLibFont_0017 # sceFontNewLib
+)
+
+target_compile_options(system PRIVATE ${COMMON_CFLAGS})
+target_include_directories(system PUBLIC 
+    ${CMAKE_CURRENT_SOURCE_DIR}/source/PSPModBase
+)
 
 # --------------------------------------------------------------------------
 # PSPModBaseBoot – kernel-mode bootstrapper
@@ -50,6 +71,7 @@ add_prx_module(PSPModBase
 target_compile_options(PSPModBase PRIVATE ${COMMON_CFLAGS} -fpack-struct=16)
 target_link_libraries(PSPModBase PRIVATE
     encoding
+    system
     pspsystemctrl_user
     pspkubridge
     m

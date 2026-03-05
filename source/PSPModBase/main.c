@@ -359,8 +359,7 @@ int MainInit() {
 
     // TODO: EnableMessageDialogPatch
     int iniEnableMessageDialogPatch = inireader.ReadInteger("PATCHES", "EnableMessageDialogPatch", 0);
-    sceKernelPrintf("message dialog patch is: %d\n", iniEnableMessageDialogPatch
-    );
+    sceKernelPrintf("message dialog patch is: %d\n", iniEnableMessageDialogPatch);
     if (iniEnableMessageDialogPatch)
     {
         uint32_t li_instr = li(v1, 0x0b); // li v1, 0x0b or addiu $v1, $zero, 0x000B
@@ -370,6 +369,15 @@ int MainInit() {
     }
 
     // TODO: EnablePulseAutowin
+    int iniEnablePulseAutowin = inireader.ReadInteger("CHEATS", "EnablePulseAutowin", 0);
+    sceKernelPrintf("pulse autowin is: %d\n", iniEnablePulseAutowin);
+    if (iniEnablePulseAutowin)
+    {
+        injector.WriteMemory32(0x0885b478, 0x00000000);
+        injector.WriteMemory32(0x0885b5fc, 0x00000000);
+        // injector.WriteMemory32(0x0885b5cc, 0x0a216d82);
+        injector.WriteMemory32(0x0885b5c4, 0x00000000);
+    }
 
     // TODO: ExternalTransFile
 
