@@ -301,11 +301,11 @@ int MainInit() {
 
     // And then read & do something with the value...
     int iniValue = inireader.ReadInteger("MAIN", "Value", 0);
-    sceKernelPrintf("ini value is: %d\n", iniValue);
+    logPrintf("ini value is: %d\n", iniValue);
 
     // Extend SHIFT-JIS charset to support more characters (e.g. Chinese characters)
     int iniExtendCharset = inireader.ReadInteger("PATCHES", "EnableExtendCharset", 0);
-    sceKernelPrintf("extend charset is: %d\n", iniExtendCharset);
+    logPrintf("extend charset is: %d\n", iniExtendCharset);
 
     if (iniExtendCharset)
     {
@@ -320,7 +320,7 @@ int MainInit() {
 
     // Patch the SHIFT-JIS to UTF-16 translation function to support the extended charset
     int iniTranslateCode = inireader.ReadInteger("PATCHES", "EnableCharTranslationHook", 0);
-    sceKernelPrintf("translate code is: %d\n", iniTranslateCode);
+    logPrintf("translate code is: %d", iniTranslateCode);
 
     if (iniTranslateCode)
     {
@@ -329,7 +329,7 @@ int MainInit() {
     }
 
     int iniEnableCustomFontPatch = inireader.ReadInteger("PATCHES", "EnableCustomFontPatch", 0);
-    sceKernelPrintf("custom font patch is: %d\n", iniEnableCustomFontPatch);
+    logPrintf("custom font patch is: %d", iniEnableCustomFontPatch);
 
     if(iniEnableCustomFontPatch)
     {
@@ -345,7 +345,7 @@ int MainInit() {
 
     // TODO: EnableSaveDataPatch
     int iniEnableSaveDataPatch = inireader.ReadInteger("PATCHES", "EnableSaveDataPatch", 0);
-    sceKernelPrintf("save data patch is: %d\n", iniEnableSaveDataPatch);
+    logPrintf("save data patch is: %d", iniEnableSaveDataPatch);
 
     if (iniEnableSaveDataPatch)
     {
@@ -359,7 +359,7 @@ int MainInit() {
 
     // TODO: EnableMessageDialogPatch
     int iniEnableMessageDialogPatch = inireader.ReadInteger("PATCHES", "EnableMessageDialogPatch", 0);
-    sceKernelPrintf("message dialog patch is: %d\n", iniEnableMessageDialogPatch);
+    logPrintf("message dialog patch is: %d", iniEnableMessageDialogPatch);
     if (iniEnableMessageDialogPatch)
     {
         uint32_t li_instr = li(v1, 0x0b); // li v1, 0x0b or addiu $v1, $zero, 0x000B
@@ -370,7 +370,7 @@ int MainInit() {
 
     // TODO: EnablePulseAutowin
     int iniEnablePulseAutowin = inireader.ReadInteger("CHEATS", "EnablePulseAutowin", 0);
-    sceKernelPrintf("pulse autowin is: %d\n", iniEnablePulseAutowin);
+    logPrintf("pulse autowin is: %d", iniEnablePulseAutowin);
     if (iniEnablePulseAutowin)
     {
         injector.WriteMemory32(0x0885b478, 0x00000000);
@@ -385,7 +385,7 @@ int MainInit() {
 
     // TODO: EnableBattleDebugMenu
     int iniEnableBattleDebugMenu = inireader.ReadInteger("DEBUG", "EnableBattleDebugMenu", 0);
-    sceKernelPrintf("battle debug menu is: %d\n", iniEnableBattleDebugMenu);
+    logPrintf("battle debug menu is: %d", iniEnableBattleDebugMenu);
     if (iniEnableBattleDebugMenu)
     {
         injector.WriteMemory32(0x08b57e04, 0x01);
@@ -393,7 +393,7 @@ int MainInit() {
 
     // TODO: EnableDailyDebugMenu
     int iniEnableDailyDebugMenu = inireader.ReadInteger("DEBUG", "EnableDailyDebugMenu", 0);
-    sceKernelPrintf("daily debug menu is: %d\n", iniEnableDailyDebugMenu);
+    logPrintf("daily debug menu is: %d", iniEnableDailyDebugMenu);
     if (iniEnableDailyDebugMenu)    {
         injector.WriteMemory32(0x089c97cc, 0x088984c0);
     }

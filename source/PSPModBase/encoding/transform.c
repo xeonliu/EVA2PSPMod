@@ -12,6 +12,7 @@ Use 0xA6-0xDD to store more Chinese Characters
 0xA600-0xDDFF.
 */
 #include <pspkernel.h>
+#include <stdint.h>
 
 #include "transform.h"
 
@@ -48,8 +49,50 @@ void transfrom_debug()
         logPrintf("Code: %04x, Index: %04x", DAT_08a3325c[i << 1], DAT_08a3325c[(i << 1) + 1]);
     }
 
-    logPrintf("Print DAT_08a3325c: %x\n", DAT_08a3325c);
-    logPrintf("Print UTF16_TABLE: %x\n", UTF16_TABLE);
+    logPrintf("Print DAT_08a3325c: %x", DAT_08a3325c);
+    logPrintf("Print UTF16_TABLE: %x", UTF16_TABLE);
+}
+
+/**
+ * Convert UTF-16 code point to UTF-8 and store it in a buffer
+ * Handles BMP (Basic Multilingual Plane) characters up to 0xFFFF
+ * 
+ * UTF-16 to UTF-8 conversion rules:
+ * - 0x0000-0x007F: 1 byte  (0xxxxxxx)
+ * - 0x0080-0x07FF: 2 bytes (110xxxxx 10xxxxxx)
+ * - 0x0800-0xFFFF: 3 bytes (1110xxxx 10xxxxxx 10xxxxxx)
+ */
+void utf16_to_utf8(uint16_t utf16_code, char *utf8_buf, int buf_size)
+{
+    int utf8_len = 0;
+
+    if (utf16_code < 0x80)
+    {
+        // 1-byte UTF-8
+        if (buf_size < 2) return; // Ensure space for null terminator
+        utf8_buf[0] = (unsigned char)utf16_code;
+        utf8_len = 1;
+    }
+    else if (utf16_code < 0x800)
+    {
+        // 2-byte UTF-8
+        if (buf_size < 3) return;
+        utf8_buf[0] = (unsigned char)(0xC0 | (utf16_code >> 6));
+        utf8_buf[1] = (unsigned char)(0x80 | (utf16_code & 0x3F));
+        utf8_len = 2;
+    }
+    else
+    {
+        // 3-byte UTF-8
+        if (buf_size < 4) return;
+        utf8_buf[0] = (unsigned char)(0xE0 | (utf16_code >> 12));
+        utf8_buf[1] = (unsigned char)(0x80 | ((utf16_code >> 6) & 0x3F));
+        utf8_buf[2] = (unsigned char)(0x80 | (utf16_code & 0x3F));
+        utf8_len = 3;
+    }
+
+    // Null-terminate the UTF-8 string
+    utf8_buf[utf8_len] = '\0';
 }
 
 uint16_t translate_code(u16 code)
@@ -66,10 +109,10 @@ Use 0xA6-0xDD to store GB2312 Chinese Characters
 */
 uint16_t modified_to_utf16(u16 code)
 {
-    logPrintf("Modified to UTF16: %x\n", code);
+    logPrintf("Modified to UTF16: %x", code);
     if (code > 0xc332)
     {
-        logPrintf("Out of Range: %x\n", code);
+        logPrintf("Out of Range: %x", code);
     }
     return ((u16 *)GB2312_CUSTOM_BIN)[code - 0xA600];
 }
@@ -80,7 +123,7 @@ uint16_t sjis_to_utf16(u16 sjis)
 
     u16 *DAT_08a3325c = (u16 *)(SJIS_bin);
     u16 *UTF16_TABLE = (u16 *)(UTF16_bin);
-    logPrintf("SJIS to UTF16: %x\n", sjis);
+    logPrintf("SHIFT-JIS: %x", sjis);
     int low = 0;
     int high = 0x5a;
 
@@ -97,7 +140,17 @@ uint16_t sjis_to_utf16(u16 sjis)
     uint16_t offset = DAT_08a3325c[(index << 1) + 1] & 0xFFFF;
 
     int table_offset = sjis - prefix + offset;
-    return UTF16_TABLE[table_offset];
+
+    uint16_t utf16_code = UTF16_TABLE[table_offset];
+
+    // Print UTF-16 and UTF-8 result for debugging
+    char utf8_buf[4];
+    utf16_to_utf8(utf16_code, utf8_buf, sizeof(utf8_buf));
+    
+    logPrintf("UTF-16 Code: 0x%04X", utf16_code);
+    logPrintf("UTF-8 Result: %s", utf8_buf);
+    
+    return utf16_code;
 }
 
 // FUN_08884724
@@ -120,7 +173,7 @@ int binary_search(uint16_t target, int low, int high)
 
         if (target >= mid_val && (mid == high || target < next_val))
         {
-            logPrintf("Found: %x\n", mid);
+            logPrintf("Found: %x", mid);
             return mid;
         }
         else if (mid_val < target)
@@ -133,7 +186,8 @@ int binary_search(uint16_t target, int low, int high)
         }
     }
 
-    logPrintf("Not Found: %x\n", target);
+    logPrintf("Not Found: %x", target);
 
     return -1; // 如果未找到目标值，则返回 -1
 }
+
