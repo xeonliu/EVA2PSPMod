@@ -1,0 +1,84 @@
+name: Build PSP Mod
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        submodules: false
+    
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          build-essential \
+          cmake \
+          pkgconf \
+          libreadline8 \
+          libusb-0.1-4 \
+          libgpgme11 \
+          libarchive-tools \
+          fakeroot \
+          wget \
+          tar
+    
+    - name: Download and setup PSPDEV SDK
+      run: |
+        # Download the latest PSPDEV SDK
+        wget https://github.com/pspdev/pspdev/releases/download/v20260301/pspdev-ubuntu-latest-x86_64.tar.gz
+        
+        # Extract to home directory
+        tar -xzf pspdev-ubuntu-latest-x86_64.tar.gz -C $HOME
+        
+        # Verify installation
+        ls -la $HOME/pspdev/bin/
+    
+    - name: Set up environment variables
+      run: |
+        echo "PSPDEV=$HOME/pspdev" >> $GITHUB_ENV
+        echo "$HOME/pspdev/bin" >> $GITHUB_PATH
+    
+    - name: Verify PSPDEV installation
+      run: |
+        psp-config --pspdev-path
+        psp-gcc --version
+    
+    - name: Build with Make (PSPModBase)
+      run: |
+        make -C source/PSPModBase
+    
+    - name: Build with Make (PSPModBaseBoot)
+      run: |
+        make -C source/PSPModBaseBoot
+    
+    - name: Clean for CMake build
+      run: |
+        make -C source/PSPModBase clean || true
+        make -C source/PSPModBaseBoot clean || true
+    
+    - name: Build with CMake
+      run: |
+        mkdir -p build
+        cd build
+        psp-cmake ..
+        make
+    
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: psp-mod-builds
+        path: |
+          build/*.prx
+          build/PSPModBase
+          build/PSPModBaseBoot
+        if-no-files-found: warn

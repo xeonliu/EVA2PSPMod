@@ -18,7 +18,7 @@ struct injector_t {
     uintptr_t module_addr;
     size_t module_size;
     int  (*AllocMemBlock)(int size, int* id);
-    void (*FreeMemBlock)();
+    void (*FreeMemBlock)(int id);
     void*(*GetGP)();
     void*(*SetGP)(void* gp);
     void (*SetModuleBaseAddress)(uintptr_t addr, size_t size);

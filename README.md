@@ -8,9 +8,9 @@ You may freely use this as a basis for a plugin to build mods for PSP games and 
 
 ## Usage
 
-Intended usage is either as a Visual Studio solution or as a regular makefile project.
+Intended usage is either as a Visual Studio solution or as a regular makefile / cmake project.
 
-In case you're using `make`, please make sure to set up the [PSPDEV Toolchain!](https://pspdev.github.io/)
+In case you're using `make` / `psp-cmake`, please make sure to set up the [PSPDEV Toolchain!](https://pspdev.github.io/)
 
 ### PSPDEV side-note
 
@@ -18,15 +18,7 @@ In case you're using `make`, please make sure to set up the [PSPDEV Toolchain!](
 
 (You may skip this step it you're using Visual Studio and/or the pspsdk submodule)
 
-Be sure to get the CFW API libraries and headers. You'll need this regardless of if you use CFW or not. PSPSDK does not come with this pre-included.
-
-The easiest place to acquire them currently is from the uofw/uofwinst repository:
-
-https://github.com/uofw/uofwinst/tree/master/include
-
-https://github.com/uofw/uofwinst/tree/master/libs
-
-From that repository, place include headers (all the .h files) into `$PSPDEV/psp/sdk/include` and libraries (all the .a files) into `$PSPDEV/psp/sdk/lib`
+Be sure to get the CFW API libraries and headers. You'll need this regardless of if you use CFW or not. PSPSDK already come with this pre-included.
 
 ### Windows
 
@@ -45,6 +37,18 @@ From that repository, place include headers (all the .h files) into `$PSPDEV/psp
 - Install and set up [PSPDEV Toolchain](https://pspdev.github.io/) if you hadn't already!
 
 - Try to do: `make -C source/PSPModBase`
+
+### CMake
+
+- Clone the repository without submodules
+
+- Install and set up [PSPDEV Toolchain](https://pspdev.github.io/) if you hadn't already!
+
+- `mkdir -p build`
+
+- `cd build && psp-cmake ..`
+
+- `make`
 
 If all is well, you should end up with an elf and a prx in the `build` folder!
 

@@ -176,7 +176,7 @@ void CheckModulesPSP()
 //
 // You can use this to hook any subsequently loaded modules.
 //
-int OnModuleStart(SceModule2* mod) 
+int OnModuleStart(SceModule* mod) 
 {
 #ifdef LOG
     logPrintf("OnModuleStart: %s", mod->modname);
