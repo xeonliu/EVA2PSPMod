@@ -32,6 +32,8 @@
 
 #include "encoding/transform.h"
 #include "system/system.h"
+#include "cn_memtalk.h"
+#include "external_translation.h"
 #include "memtalk_debug.h"
 
 // Define the name of the game's main module here
@@ -344,7 +346,36 @@ int MainInit() {
 
     // TODO: EnableStringPatches
 
-    // TODO: EnableExternalTranslation
+    int iniEnableExternalTranslation = inireader.ReadInteger("PATCHES", "EnableExternalTranslation", 0);
+#ifdef LOG
+    logPrintf("external translation is: %d", iniEnableExternalTranslation);
+#endif
+    if (iniEnableExternalTranslation)
+    {
+        char externalTransPath[128];
+        char defaultExternalTransPath[] = "disc0:/PSP_GAME/USRDIR/EBTRANS.BIN";
+        char *externalTransFile = inireader.ReadString(
+            "PATHS",
+            "ExternalTransFile",
+            defaultExternalTransPath,
+            externalTransPath,
+            sizeof(externalTransPath));
+        int externalTranslationResult = ExternalTranslation_Apply(externalTransFile);
+#ifdef LOG
+        logPrintf("external translation file: %s, result: %d", externalTransFile, externalTranslationResult);
+#else
+        (void)externalTranslationResult;
+#endif
+    }
+
+    int iniEnableCnMemTalk = inireader.ReadInteger("PATCHES", "EnableCnMemTalk", 0);
+#ifdef LOG
+    logPrintf("cn memtalk is: %d", iniEnableCnMemTalk);
+#endif
+    if (iniEnableCnMemTalk)
+    {
+        CnMemTalk_InstallHook();
+    }
 
     // TODO: EnableSaveDataPatch
     int iniEnableSaveDataPatch = inireader.ReadInteger("PATCHES", "EnableSaveDataPatch", 0);
@@ -387,8 +418,6 @@ int MainInit() {
         // injector.WriteMemory32(0x0885b5cc, 0x0a216d82);
         injector.WriteMemory32(0x0885b5c4, 0x00000000);
     }
-
-    // TODO: ExternalTransFile
 
     // TODO: ExternalFontFile
 
