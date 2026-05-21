@@ -309,7 +309,7 @@ int MainInit() {
     if (iniExtendCharset)
     {
         // BIN_COND 修改：扩展边界到 0xa6
-        uint32_t bin_instr = sltiu(v0, a0, 0xa6);
+        uint32_t bin_instr = sltiu(a2, a1, 0xa6);
         injector.WriteInstr(0x08874260, bin_instr);
 
         // EVS_COND 修改：扩展边界到 0xa6
