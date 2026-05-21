@@ -20,6 +20,7 @@
 #include <string.h>
 
 #include "../../includes/psp/injector.h"
+#include "encoding/transform.h"
 #include "memtalk_debug.h"
 
 #define MEMTALK_LOG_PATH "ms0:/PSP/memtalk_debug.log"
@@ -148,33 +149,26 @@ static void MemTalkDebug_LogHexBytes(const char *label, const char *s, int maxBy
     MemTalkDebug_Log("%s", line);
 }
 
-static void MemTalkDebug_LogRawBytes(const char *label, const char *s, int maxBytes) {
-    char prefix[128];
+static void MemTalkDebug_LogUtf8Bytes(const char *label, const char *s, int maxBytes) {
+    char utf8[1024];
     int n;
-    int prefixLen;
-    SceUID fd;
+    int utf8Len;
 
     if (!s) return;
 
     n = MemTalkDebug_StrLenBounded(s, maxBytes);
-    prefixLen = sprintf(prefix, "%s.raw=\"", label);
-
-    fd = sceIoOpen(MEMTALK_LOG_PATH, PSP_O_WRONLY | PSP_O_CREAT | PSP_O_APPEND, 0777);
-    if (fd >= 0) {
-        sceIoWrite(fd, prefix, (SceSize)prefixLen);
-        sceIoWrite(fd, s, (SceSize)n);
-        if (s[n]) {
-            sceIoWrite(fd, " ...", 4);
-        }
-        sceIoWrite(fd, "\"\n", 2);
-        sceIoClose(fd);
+    utf8Len = eva_sjis_to_utf8((const uint8_t *)s, n, utf8, sizeof(utf8));
+    if (utf8Len < 0) {
+        MemTalkDebug_Log("%s.utf8=<eva_sjis_to_utf8 error %d>", label, utf8Len);
+        return;
     }
+
+    MemTalkDebug_Log("%s.utf8=\"%s\"%s", label, utf8, s[n] ? " ..." : "");
 }
 
 static void MemTalkDebug_LogTextBytes(const char *label, const char *s, int maxBytes) {
     MemTalkDebug_LogHexBytes(label, s, maxBytes);
-    MemTalkDebug_LogRawBytes(label, s, maxBytes);
-    // TODO: also log SJIS->UTF8 conversion result for better readability
+    MemTalkDebug_LogUtf8Bytes(label, s, maxBytes);
 }
 
 static void MemTalkDebug_LogRecord(const MemTalkActionRecord *rec) {
