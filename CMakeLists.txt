@@ -71,6 +71,7 @@ target_link_options(PSPModBaseBoot PRIVATE -nostdlib)
 add_prx_module(PSPModBase
     source/PSPModBase/main.c
     source/PSPModBase/abort_stub.c
+    source/PSPModBase/memtalk_debug.c
     includes/psp/mips.c
     includes/psp/injector.c
     includes/psp/rini.c

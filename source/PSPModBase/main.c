@@ -32,6 +32,7 @@
 
 #include "encoding/transform.h"
 #include "system/system.h"
+#include "memtalk_debug.h"
 
 // Define the name of the game's main module here
 // The easiest way this can be found is by using PPSSPP's debugger
@@ -408,6 +409,16 @@ int MainInit() {
 #endif
     if (iniEnableDailyDebugMenu)    {
         injector.WriteMemory32(0x089c97cc, 0x088984c0);
+    }
+
+    int iniEnableMemTalkDebug = inireader.ReadInteger("DEBUG", "EnableMemTalkDebug", 0);
+#ifdef LOG
+    logPrintf("memtalk debug is: %d", iniEnableMemTalkDebug);
+#endif
+    if (iniEnableMemTalkDebug)
+    {
+        MemTalkDebug_SetGameBase(injector.base_addr);
+        MemTalkDebug_InstallHook();
     }
 
     // not really necessary
