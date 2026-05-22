@@ -1,6 +1,7 @@
 TARGET = ../../build/PSPModBase
 # include more objs here depending on what you use (e.g. "../../includes/psp/mips.o")
-OBJS = main.o exports.o abort_stub.o cn_memtalk.o external_translation.o memtalk_debug.o translation/cn_memtalk_templates.o\
+OBJS = main.o exports.o abort_stub.o cn_memtalk.o external_translation.o memtalk_debug.o\
+ translation/cn_memtalk_templates.o translation/utf8_string_patches.o\
  encoding/gb2312.o encoding/utf16.o encoding/sjis.o encoding/transform.o\
  system/psputil.o system/scefttt.o system/sceLibFont.o\
  ../../includes/psp/mips.o ../../includes/psp/injector.o ../../includes/psp/rini.o ../../includes/psp/inireader.o

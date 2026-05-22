@@ -75,6 +75,7 @@ add_prx_module(PSPModBase
     source/PSPModBase/external_translation.c
     source/PSPModBase/memtalk_debug.c
     source/PSPModBase/translation/cn_memtalk_templates.c
+    source/PSPModBase/translation/utf8_string_patches.c
     includes/psp/mips.c
     includes/psp/injector.c
     includes/psp/rini.c

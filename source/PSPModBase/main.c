@@ -35,6 +35,7 @@
 #include "cn_memtalk.h"
 #include "external_translation.h"
 #include "memtalk_debug.h"
+#include "translation/utf8_string_patches.h"
 
 // Define the name of the game's main module here
 // The easiest way this can be found is by using PPSSPP's debugger
@@ -359,7 +360,14 @@ int MainInit() {
         injector.MakeJAL(0x08869310, (uintptr_t)sceFtttGetFontInfo);
     }
 
-    // TODO: EnableStringPatches (UTF-8 String in Game Save Data, etc.)
+    int iniEnableStringPatches = inireader.ReadInteger("PATCHES", "EnableStringPatches", 0);
+#ifdef LOG
+    logPrintf("string patches is: %d", iniEnableStringPatches);
+#endif
+    if (iniEnableStringPatches)
+    {
+        Utf8StringPatches_Apply();
+    }
 
     // External EBOOT Translation patch
     int iniEnableExternalTranslation = inireader.ReadInteger("PATCHES", "EnableExternalTranslation", 0);
