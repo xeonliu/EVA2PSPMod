@@ -4,6 +4,7 @@
 int sceFtttOpen(int fontLibHandle, int index, int mode, int errorCodePtr);
 int sceFtttNewLib(int paramsPtr, int errorCodePtr);
 int sceFtttGetFontInfo(int fontHandle, int fontInfoPtr);
+void sceFtttSetFontPath(const char *path);
 
 
 // The Original Fuction Declaration. Stub Defined in sceLibFont.S

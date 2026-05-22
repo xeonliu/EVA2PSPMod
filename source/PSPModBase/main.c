@@ -338,6 +338,20 @@ int MainInit() {
 
     if(iniEnableCustomFontPatch)
     {
+        char externalFontPath[128];
+        char defaultExternalFontPath[] = "disc0:/PSP_GAME/USRDIR/fonts.pgf";
+        char *externalFontFile = inireader.ReadString(
+            "PATHS",
+            "ExternalFontFile",
+            defaultExternalFontPath,
+            externalFontPath,
+            sizeof(externalFontPath));
+
+        sceFtttSetFontPath(externalFontFile);
+#ifdef LOG
+        logPrintf("external font file: %s", externalFontFile);
+#endif
+
         // 字体钩子
         injector.MakeJAL(0x08869040, (uintptr_t)sceFtttNewLib);
         injector.MakeJAL(0x088692f8, (uintptr_t)sceFtttOpen);
@@ -418,8 +432,6 @@ int MainInit() {
         // injector.WriteMemory32(0x0885b5cc, 0x0a216d82);
         injector.WriteMemory32(0x0885b5c4, 0x00000000);
     }
-
-    // TODO: ExternalFontFile
 
     // TODO: EnableBattleDebugMenu
     int iniEnableBattleDebugMenu = inireader.ReadInteger("DEBUG", "EnableBattleDebugMenu", 0);

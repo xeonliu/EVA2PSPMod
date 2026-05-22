@@ -5,6 +5,10 @@
 
 #include "scefttt.h"
 
+#define SCE_FTTT_FONT_PATH_CAP 128
+
+static char g_fontPath[SCE_FTTT_FONT_PATH_CAP] = "disc0:/PSP_GAME/USRDIR/fonts.pgf";
+
 // https://github.com/uofw/uofw/blob/master/include/common/errors.h#L286
 #define SCE_ERROR_KERNEL_LIBRARY_IS_NOT_LINKED 0x8002013A
 
@@ -137,6 +141,22 @@ static int my_seek(void *pdata, void *fileid, int offset)
     return sceIoLseek32((SceUID)fileid, offset, PSP_SEEK_SET) < 0 ? SCE_FONT_ERROR_FILESEEK : 0;
 }
 
+void sceFtttSetFontPath(const char *path)
+{
+    int i;
+
+    if (!path || !path[0])
+    {
+        return;
+    }
+
+    for (i = 0; i + 1 < SCE_FTTT_FONT_PATH_CAP && path[i]; ++i)
+    {
+        g_fontPath[i] = path[i];
+    }
+    g_fontPath[i] = '\0';
+}
+
 /* Patch IO Functions */
 int sceFtttNewLib(int paramsPtr, int errorCodePtr){
     sceFont_t_initRec *params = (sceFont_t_initRec *)paramsPtr;
@@ -163,7 +183,7 @@ int sceFtttNewLib(int paramsPtr, int errorCodePtr){
 /* Patch Open Function */
 int sceFtttOpen(int fontLibHandle, int index, int mode, int errorCodePtr)
 {
-    return sceFontOpenUserFile(fontLibHandle, (int)"disc0:/PSP_GAME/USRDIR/fonts.pgf", 0, errorCodePtr);
+    return sceFontOpenUserFile(fontLibHandle, (int)g_fontPath, 0, errorCodePtr);
 }
 
 /* Patch Font Info in Memory */
