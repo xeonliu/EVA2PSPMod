@@ -331,6 +331,7 @@ int MainInit() {
         injector.MakeJAL(0x088691b8, (uintptr_t)translate_code);
     }
 
+    // Use custom font file (which can support more characters, such as Chinese characters)
     int iniEnableCustomFontPatch = inireader.ReadInteger("PATCHES", "EnableCustomFontPatch", 0);
 #ifdef LOG
     logPrintf("custom font patch is: %d", iniEnableCustomFontPatch);
@@ -358,8 +359,9 @@ int MainInit() {
         injector.MakeJAL(0x08869310, (uintptr_t)sceFtttGetFontInfo);
     }
 
-    // TODO: EnableStringPatches
+    // TODO: EnableStringPatches (UTF-8 String in Game Save Data, etc.)
 
+    // External EBOOT Translation patch
     int iniEnableExternalTranslation = inireader.ReadInteger("PATCHES", "EnableExternalTranslation", 0);
 #ifdef LOG
     logPrintf("external translation is: %d", iniEnableExternalTranslation);
@@ -382,6 +384,7 @@ int MainInit() {
 #endif
     }
 
+    // Patch the Memory Talk system to use Chinese templates
     int iniEnableCnMemTalk = inireader.ReadInteger("PATCHES", "EnableCnMemTalk", 0);
 #ifdef LOG
     logPrintf("cn memtalk is: %d", iniEnableCnMemTalk);
@@ -391,7 +394,7 @@ int MainInit() {
         CnMemTalk_InstallHook();
     }
 
-    // TODO: EnableSaveDataPatch
+    // Patch the save data utility to use Simplified Chinese
     int iniEnableSaveDataPatch = inireader.ReadInteger("PATCHES", "EnableSaveDataPatch", 0);
 #ifdef LOG
     logPrintf("save data patch is: %d", iniEnableSaveDataPatch);
@@ -407,7 +410,7 @@ int MainInit() {
         injector.MakeJAL(0x0880e1d4, (uintptr_t)sceUtilitySavedataInitStartPatched);
     }
 
-    // TODO: EnableMessageDialogPatch
+    // Patches all the message dialogs to use Simplified Chinese
     int iniEnableMessageDialogPatch = inireader.ReadInteger("PATCHES", "EnableMessageDialogPatch", 0);
 #ifdef LOG
     logPrintf("message dialog patch is: %d", iniEnableMessageDialogPatch);
@@ -420,7 +423,7 @@ int MainInit() {
         injector.WriteInstr(0x0880d02c, sw_instr);
     }
 
-    // TODO: EnablePulseAutowin
+    // Enable Pulse Autowin
     int iniEnablePulseAutowin = inireader.ReadInteger("CHEATS", "EnablePulseAutowin", 0);
 #ifdef LOG
     logPrintf("pulse autowin is: %d", iniEnablePulseAutowin);
@@ -433,7 +436,7 @@ int MainInit() {
         injector.WriteMemory32(0x0885b5c4, 0x00000000);
     }
 
-    // TODO: EnableBattleDebugMenu
+    // Enable Battle Debug Menu (shows up before battle)
     int iniEnableBattleDebugMenu = inireader.ReadInteger("DEBUG", "EnableBattleDebugMenu", 0);
 #ifdef LOG
     logPrintf("battle debug menu is: %d", iniEnableBattleDebugMenu);
@@ -443,7 +446,7 @@ int MainInit() {
         injector.WriteMemory32(0x08b57e04, 0x01);
     }
 
-    // TODO: EnableDailyDebugMenu
+    // Enable Daily Debug Menu
     int iniEnableDailyDebugMenu = inireader.ReadInteger("DEBUG", "EnableDailyDebugMenu", 0);
 #ifdef LOG
     logPrintf("daily debug menu is: %d", iniEnableDailyDebugMenu);
@@ -452,6 +455,7 @@ int MainInit() {
         injector.WriteMemory32(0x089c97cc, 0x088984c0);
     }
 
+    // Memory Talk Debug (prints out the history action and elements used in the Memory Talk system)
     int iniEnableMemTalkDebug = inireader.ReadInteger("DEBUG", "EnableMemTalkDebug", 0);
 #ifdef LOG
     logPrintf("memtalk debug is: %d", iniEnableMemTalkDebug);
