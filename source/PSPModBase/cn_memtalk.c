@@ -32,6 +32,7 @@ enum {
     CN_MEMTALK_SENTENCE_CAP = 512,
     CN_MEMTALK_EVENT_CAP = 384,
     CN_MEMTALK_MASK_CAP = 96,
+    CN_MEMTALK_LITERAL_CAP = 128,
     CN_MEMTALK_TEMPLATE_PIECE_CAP = 192
 };
 
@@ -103,6 +104,35 @@ static int CnMemTalk_AppendText(char *out, int outCap, int pos, const char *text
         pos = CnMemTalk_AppendByte(out, outCap, pos, *p++);
     }
     return pos;
+}
+
+static int CnMemTalk_AppendUtf8Text(char *out, int outCap, int pos, const char *utf8Text)
+{
+    uint8_t evaSjisText[CN_MEMTALK_LITERAL_CAP];
+    int utf8Len = 0;
+    int textLen;
+
+    if (!utf8Text || !utf8Text[0])
+    {
+        return pos;
+    }
+
+    while (utf8Text[utf8Len])
+    {
+        ++utf8Len;
+    }
+
+    textLen = utf8_to_eva_sjis(
+        utf8Text,
+        utf8Len,
+        evaSjisText,
+        sizeof(evaSjisText));
+    if (textLen < 0)
+    {
+        return pos;
+    }
+
+    return CnMemTalk_AppendText(out, outCap, pos, (const char *)evaSjisText);
 }
 
 static int CnMemTalk_StrLen(const char *text)
@@ -271,7 +301,7 @@ static int CnMemTalk_AppendTalkTarget(char *out, int outCap, int pos, uint8_t ta
         return pos;
     }
 
-    pos = CnMemTalk_AppendText(out, outCap, pos, "\x8C\xFC");
+    pos = CnMemTalk_AppendUtf8Text(out, outCap, pos, "向");
     return CnMemTalk_AppendText(out, outCap, pos, "$b");
 }
 
@@ -292,7 +322,7 @@ static int CnMemTalk_BuildSimpleSentence(
     pos = CnMemTalk_AppendText(out, outCap, pos, "$a");
     pos = CnMemTalk_AppendTalkTarget(out, outCap, pos, targetBit);
     pos = CnMemTalk_AppendText(out, outCap, pos, verbSjis);
-    pos = CnMemTalk_AppendText(out, outCap, pos, "\xAC\x83\x8B\x8E\x93\x49\x8E\x96\x8F\xEE\x81\x42");
+    pos = CnMemTalk_AppendUtf8Text(out, outCap, pos, "过去的事情。");
     return pos;
 }
 
@@ -333,7 +363,7 @@ static int CnMemTalk_BuildDetailSentence(
     pos = CnMemTalk_AppendText(out, outCap, pos, timePhrase);
     pos = CnMemTalk_AppendText(out, outCap, pos, placePhrase);
     pos = CnMemTalk_AppendText(out, outCap, pos, eventText);
-    pos = CnMemTalk_AppendText(out, outCap, pos, "\x81\x42");
+    pos = CnMemTalk_AppendUtf8Text(out, outCap, pos, "。");
     return pos;
 }
 
@@ -357,22 +387,22 @@ static void *CnMemTalk_ShowTailIfNeeded(uint8_t speakerBit, uint8_t targetBit)
     r = RandN(5);
     if (r >= 0 && r < 2)
     {
-        tailText = "\xAC\xFB\x90\xA5\x95\x73\x96\xBE\x94\x92\x81\x42";
+        tailText = "还是不明白。";
     }
     else if (r == 2)
     {
-        tailText = "\x96\x76\x94\x5C\x99\xDF\x90\xB4\x81\x42";
+        tailText = "没能听清。";
     }
     else
     {
-        tailText = "\x96\x76\x94\x5C\x97\x9D\x89\xF0\x81\x42";
+        tailText = "没能理解。";
     }
 
     targetName = GetNameByBit(targetBit);
     buffer[0] = '\0';
-    pos = CnMemTalk_AppendText(buffer, sizeof(buffer), pos, "\x92\x41\x90\xA5");
+    pos = CnMemTalk_AppendUtf8Text(buffer, sizeof(buffer), pos, "但是");
     pos = CnMemTalk_AppendText(buffer, sizeof(buffer), pos, targetName);
-    CnMemTalk_AppendText(buffer, sizeof(buffer), pos, tailText);
+    CnMemTalk_AppendUtf8Text(buffer, sizeof(buffer), pos, tailText);
     return ShowTokenizedText(0, speakerBit, targetBit, 0, buffer);
 }
 
