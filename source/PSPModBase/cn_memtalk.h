@@ -20,4 +20,5 @@ typedef struct CnMemTalkTemplatePair {
 extern const CnMemTalkTemplatePair g_cnMemTalkTemplates[CN_MEMTALK_TEMPLATE_COUNT];
 
 void CnMemTalk_InstallHook(void);
+char *CnMemTalk_FormatActionSummary25(const void *rec, uint8_t styleBit, char *out25);
 void *CnMemTalk_ShowMemorySentence(void *ctx, const void *rec, const char *verbSjis);

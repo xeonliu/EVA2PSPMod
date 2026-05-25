@@ -26,6 +26,7 @@
 #define CN_MEMTALK_ADDR_FORMAT_LOCATION_PHRASE 0x0890F9F0u
 
 #define CN_MEMTALK_HOOK_SHOW_MEMORY_SENTENCE 0x0890F080u
+#define CN_MEMTALK_HOOK_FORMAT_ACTION_SUMMARY 0x0890F6B8u
 #define CN_MEMTALK_LOW24_MASK 0x00FFFFFFu
 
 enum {
@@ -33,6 +34,7 @@ enum {
     CN_MEMTALK_EVENT_CAP = 384,
     CN_MEMTALK_MASK_CAP = 96,
     CN_MEMTALK_LITERAL_CAP = 128,
+    CN_MEMTALK_SUMMARY_CAP = 25,
     CN_MEMTALK_TEMPLATE_PIECE_CAP = 192
 };
 
@@ -243,6 +245,130 @@ static int CnMemTalk_MaskContainsStyle(uint32_t mask, uint8_t styleBit)
     return (mask & (1u << styleBit)) != 0;
 }
 
+static int CnMemTalk_IsSjisLeadByte(uint8_t byte)
+{
+    if (byte >= 0xA6 && byte <= 0xDD)
+    {
+        return 1;
+    }
+    return (byte >= 0x81 && byte <= 0x9F) || (byte >= 0xE0 && byte <= 0xFC);
+}
+
+static int CnMemTalk_SjisCharSize(const uint8_t *text)
+{
+    if (!text || !text[0])
+    {
+        return 0;
+    }
+
+    if (CnMemTalk_IsSjisLeadByte(text[0]))
+    {
+        return text[1] ? 2 : 0;
+    }
+
+    return 1;
+}
+
+static int CnMemTalk_SjisFits(const char *text, int outCap)
+{
+    const uint8_t *p = (const uint8_t *)text;
+    int pos = 0;
+
+    if (!text || outCap <= 0)
+    {
+        return 1;
+    }
+
+    while (*p)
+    {
+        int charSize = CnMemTalk_SjisCharSize(p);
+        if (charSize <= 0 || pos + charSize >= outCap)
+        {
+            return 0;
+        }
+        pos += charSize;
+        p += charSize;
+    }
+
+    return 1;
+}
+
+static int CnMemTalk_EncodeUtf8Literal(const char *utf8Text, char *out, int outCap)
+{
+    int utf8Len = 0;
+
+    if (!utf8Text || !out || outCap <= 0)
+    {
+        return 0;
+    }
+
+    while (utf8Text[utf8Len])
+    {
+        ++utf8Len;
+    }
+
+    return utf8_to_eva_sjis(utf8Text, utf8Len, (uint8_t *)out, outCap);
+}
+
+static char *CnMemTalk_CopySjisTruncated(char *out, int outCap, const char *text)
+{
+    char ellipsis[8];
+    int ellipsisLen;
+    int bodyLimit;
+    int pos = 0;
+    int i;
+    const uint8_t *p = (const uint8_t *)text;
+
+    if (!out || outCap <= 0)
+    {
+        return out;
+    }
+
+    for (i = 0; i < outCap; ++i)
+    {
+        out[i] = '\0';
+    }
+
+    if (!text)
+    {
+        return out;
+    }
+
+    if (CnMemTalk_SjisFits(text, outCap))
+    {
+        CnMemTalk_AppendText(out, outCap, 0, text);
+        return out;
+    }
+
+    ellipsisLen = CnMemTalk_EncodeUtf8Literal("…", ellipsis, sizeof(ellipsis));
+    if (ellipsisLen <= 0 || ellipsisLen >= outCap)
+    {
+        ellipsisLen = 0;
+    }
+
+    bodyLimit = outCap - 1 - ellipsisLen;
+    while (*p)
+    {
+        int charSize = CnMemTalk_SjisCharSize(p);
+        if (charSize <= 0 || pos + charSize > bodyLimit)
+        {
+            break;
+        }
+        out[pos++] = (char)*p++;
+        if (charSize == 2)
+        {
+            out[pos++] = (char)*p++;
+        }
+    }
+
+    for (i = 0; i < ellipsisLen && pos + 1 < outCap; ++i)
+    {
+        out[pos++] = ellipsis[i];
+    }
+    out[pos] = '\0';
+    return out;
+}
+
 static int CnMemTalk_BuildEvent(
     const CnMemTalkActionRecord *rec,
     uint8_t styleBit,
@@ -292,6 +418,25 @@ static int CnMemTalk_BuildEvent(
     pos = CnMemTalk_RenderTemplatePiece(out, outCap, pos, templatePair->prefix, maskAText, maskBText);
     pos = CnMemTalk_RenderTemplatePiece(out, outCap, pos, templatePair->suffix, maskAText, maskBText);
     return pos;
+}
+
+char *CnMemTalk_FormatActionSummary25(const void *recVoid, uint8_t styleBit, char *out25)
+{
+    const CnMemTalkActionRecord *rec = (const CnMemTalkActionRecord *)recVoid;
+    char eventText[CN_MEMTALK_EVENT_CAP];
+
+    if (!out25)
+    {
+        return out25;
+    }
+
+    if (!CnMemTalk_BuildEvent(rec, styleBit, eventText, sizeof(eventText)))
+    {
+        eventText[0] = '\0';
+        CnMemTalk_AppendUtf8Text(eventText, sizeof(eventText), 0, "过去的事");
+    }
+
+    return CnMemTalk_CopySjisTruncated(out25, CN_MEMTALK_SUMMARY_CAP, eventText);
 }
 
 static int CnMemTalk_AppendTalkTarget(char *out, int outCap, int pos, uint8_t targetBit)
@@ -452,6 +597,7 @@ void *CnMemTalk_ShowMemorySentence(void *ctx, const void *recVoid, const char *v
 
 void CnMemTalk_InstallHook(void)
 {
+    injector.MakeJMPwNOP(CN_MEMTALK_HOOK_FORMAT_ACTION_SUMMARY, (uintptr_t)&CnMemTalk_FormatActionSummary25);
     injector.MakeJMPwNOP(CN_MEMTALK_HOOK_SHOW_MEMORY_SENTENCE, (uintptr_t)&CnMemTalk_ShowMemorySentence);
     sceKernelDcacheWritebackAll();
     sceKernelIcacheInvalidateAll();
